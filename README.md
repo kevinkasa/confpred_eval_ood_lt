@@ -1,3 +1,3 @@
-# Evaluating Conformal Prediction under Distribution Shift and Long-tailed Data
+# Evaluating Conformal Prediction Under Distribution Shift and Long-tailed Data
 
 
