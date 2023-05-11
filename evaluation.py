@@ -1,6 +1,39 @@
+from typing import Tuple
+
 import numpy as np
 
 import conformal_prediction as cp
+
+
+def compute_conditional_accuracy(
+        probabilities: np.ndarray, labels: np.ndarray,
+        conditional_labels: np.ndarray, conditional_label: int) -> float:
+    """Computes conditional accuracy given softmax probabilities and labels.
+
+    Conditional accuracy is defined as the accuracy on a subset of the examples
+    as selected using the conditional label(s). For example, this allows
+    to compute accuracy conditioned on class labels.
+
+    Args:
+        :param probabilities: predicted probabilities on test set
+        :param labels: ground truth labels on test set
+        :param conditional_labels: conditional labels to compute accuracy on
+        :param conditional_label: selected conditional label to compute accuracy on
+        :return Accuracy
+    """
+    # TODO: look more carefully into what this is calculating; is this macro acc?
+    selected = (conditional_labels == conditional_label)
+    num_examples = np.sum(selected)
+    predictions = np.argmax(probabilities, axis=1)
+    error = selected * (predictions != labels)
+    error = np.where(num_examples == 0, 1, np.sum(error) / num_examples)
+    return 1 - error
+
+
+def compute_accuracy(probabilities: np.ndarray, labels: np.ndarray) -> float:
+    """Compute unconditional accuracy using compute_conditional_accuracy."""
+    return compute_conditional_accuracy(
+        probabilities, labels, np.zeros(labels.shape, int), 0)
 
 
 def compute_conditional_multi_coverage(
@@ -58,3 +91,33 @@ def compute_conditional_coverage(
     one_hot_labels = np.eye(confidence_sets.shape[1])[labels]
     return compute_conditional_multi_coverage(
         confidence_sets, one_hot_labels, conditional_labels, conditional_label)
+
+
+def compute_conditional_size(
+        confidence_sets: np.ndarray,
+        conditional_labels: np.ndarray,
+        conditional_label: int) -> Tuple[float, int]:
+    """
+    Compute confidence set size.
+
+    :param confidence_sets: confidence sets on test set
+    :param conditional_labels: conditional labels to compute size on
+    :param conditional_label: selected conditional to compute size for
+    :return: Average size.
+    """
+
+    selected = (conditional_labels == conditional_label)
+    num_examples = np.sum(selected)
+    size = selected * np.sum(confidence_sets, axis=1)
+    size = np.where(num_examples == 0, 0, np.sum(size) / num_examples)  # TODO: step through this
+    return size, num_examples
+
+
+def compute_size(confidence_sets: np.ndarray) -> Tuple[float, int]:
+    """
+    Compute unconditional coverage using compute_conditional_coverage
+    :param confidence_sets: confidence sets on test set
+    :return: Average size.
+    """
+    return compute_conditional_size(
+        confidence_sets, np.zeros(confidence_sets.shape[0], int), 0)

@@ -13,7 +13,7 @@ Least ambiguous set-valued classifiers with bounded error levels.
 ArXiv, 2016. (THR)
 """
 
-from typing import Optional, Callable, Any
+from typing import Optional, Callable, Any, Tuple
 
 import numpy as np
 
@@ -55,7 +55,7 @@ def calibrate_threshold(
 
     :param probabilities: predicted probabilities on validation set
     :param labels: ground truth labels on validation set
-    :param  alpha: confidence level
+    :param alpha: confidence level
     :param quantile_fn: function to compute conformal quantile
 
     return: Threshold used to construct confidence sets
@@ -125,7 +125,7 @@ def calibrate_raps(
     cum_probabilities = np.cumsum(sorted_probabilities, axis=1)
 
     rand = np.zeros(sorted_probabilities.shape[0])
-    if rng is not None:
+    if rng:
         rand = np.random.uniform(size=(sorted_probabilities.shape[0],))
     # adding randomness to calibration improves efficency
     cum_probabilities -= np.expand_dims(rand,
@@ -143,8 +143,8 @@ def calibrate_raps(
         # as the true class is included by design and only
         # additional classes should be regularized
         conformity_reg = reverse_sorting[np.arange(reverse_sorting.shape[0]),
-        labels]
-        conformity_reg = conformity_reg - k_reg + 1  # TODO: double check this
+                                         labels]
+        conformity_reg = conformity_reg - k_reg + 1
         conformity_reg = lambda_reg * np.maximum(conformity_reg, 0)
         conformity_scores += conformity_reg
 
@@ -178,8 +178,7 @@ def predict_raps(
     if reg:
         # in [2], L is the number of classes for which cumulative probability
         # mass and regularizer are below tau + 1, we account for that in
-        # the first line by starting to count at 1 TODO: double check original implementation
-
+        # the first line by starting to count at 1
         # cum_probabilities is shape (n_examples, n_classes)
         # first add +1 so indices start at 1
         reg_probabilities = np.repeat(  # np.arange creates 1D array from 0 to n_classes-1
@@ -190,7 +189,7 @@ def predict_raps(
         cum_probabilities += lambda_reg * reg_probabilities  # add regularization penalty to these classes
 
     rand = np.ones((sorted_probabilities.shape[0]))
-    if rng is not None:
+    if rng:
         rand = np.random.uniform(low=1, high=0, size=(sorted_probabilities.shape[0],))
     cum_probabilities -= np.expand_dims(rand, axis=1) * sorted_probabilities
 
