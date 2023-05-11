@@ -12,7 +12,7 @@ import utils
 
 
 def main(root_path: str, save_path: str, percent_cal: float, alpha: float, n_trials: int = 10,
-         ood_datasets: list = None, ):
+         ood_datasets: list = None, INC_datasets: list = None, ):
     """
     Performs conformal prediction and evaluation on ImageNet and given OOD datasets, and saves results to .csv's
     :param root_path: Root path where softmax scores are stored
@@ -101,42 +101,46 @@ def main(root_path: str, save_path: str, percent_cal: float, alpha: float, n_tri
                     data_paths.append(p)
 
                 for data_path in data_paths:
-                    data = np.load(data_path)
-                    val_smx = data['smx']
-                    val_labels = data['labels'].astype(int)
+                    eval = True
+                    if dataset == 'imagenet_c' and data_path.parts[-3] not in INC_datasets:
+                        eval = False  # used to skip IN-C datasets
+                    if eval:
+                        data = np.load(data_path)
+                        val_smx = data['smx']
+                        val_labels = data['labels'].astype(int)
 
-                    # evaluate accuracy
-                    acc = evaluation.compute_accuracy(val_smx, val_labels)
+                        # evaluate accuracy
+                        acc = evaluation.compute_accuracy(val_smx, val_labels)
 
-                    # get confidence sets
-                    conf_set_thr = cp.predict_threshold(val_smx, tau_thr)
-                    conf_set_raps = cp.predict_raps(val_smx, tau_raps, rng=True, k_reg=2, lambda_reg=0.1)
-                    conf_set_aps = cp.predict_raps(val_smx, tau_aps, rng=True)
+                        # get confidence sets
+                        conf_set_thr = cp.predict_threshold(val_smx, tau_thr)
+                        conf_set_raps = cp.predict_raps(val_smx, tau_raps, rng=True, k_reg=2, lambda_reg=0.1)
+                        conf_set_aps = cp.predict_raps(val_smx, tau_aps, rng=True)
 
-                    # evaluate coverage
-                    cov_thr = float(evaluation.compute_coverage(conf_set_thr, val_labels))
-                    cov_raps = float(evaluation.compute_coverage(conf_set_raps, val_labels))
-                    cov_aps = float(evaluation.compute_coverage(conf_set_aps, val_labels))
+                        # evaluate coverage
+                        cov_thr = float(evaluation.compute_coverage(conf_set_thr, val_labels))
+                        cov_raps = float(evaluation.compute_coverage(conf_set_raps, val_labels))
+                        cov_aps = float(evaluation.compute_coverage(conf_set_aps, val_labels))
 
-                    # evaluate set size
-                    size_thr, _ = evaluation.compute_size(conf_set_thr)
-                    size_raps, _ = evaluation.compute_size(conf_set_raps)
-                    size_aps, _ = evaluation.compute_size(conf_set_aps)
+                        # evaluate set size
+                        size_thr, _ = evaluation.compute_size(conf_set_thr)
+                        size_raps, _ = evaluation.compute_size(conf_set_raps)
+                        size_aps, _ = evaluation.compute_size(conf_set_aps)
 
-                    if dataset == 'imagenet_c':  # get the right IN-C corruption type and level
-                        data_name = dataset + '_' + data_path.parts[-3] + '_' + data_path.parts[-2]
-                    else:
-                        data_name = dataset
+                        if dataset == 'imagenet_c':  # get the right IN-C corruption type and level
+                            data_name = dataset + '_' + data_path.parts[-3] + '_' + data_path.parts[-2]
+                        else:
+                            data_name = dataset
 
-                    # save results for this trail
-                    results[data_name]['model'].append(model)
-                    results[data_name]['acc'].append(acc)
-                    results[data_name]['cov_thr'].append(cov_thr)
-                    results[data_name]['cov_raps'].append(cov_raps)
-                    results[data_name]['cov_aps'].append(cov_aps)
-                    results[data_name]['size_thr'].append(float(size_thr))
-                    results[data_name]['size_raps'].append(float(size_raps))
-                    results[data_name]['size_aps'].append(float(size_aps))
+                        # save results for this trail
+                        results[data_name]['model'].append(model)
+                        results[data_name]['acc'].append(acc)
+                        results[data_name]['cov_thr'].append(cov_thr)
+                        results[data_name]['cov_raps'].append(cov_raps)
+                        results[data_name]['cov_aps'].append(cov_aps)
+                        results[data_name]['size_thr'].append(float(size_thr))
+                        results[data_name]['size_raps'].append(float(size_raps))
+                        results[data_name]['size_aps'].append(float(size_aps))
 
         # create a dataframe for each dataset, then append trial results to the corresponding dataframe
         for key, value in results.items():  # key: dataset, value: trial results
@@ -159,4 +163,4 @@ def main(root_path: str, save_path: str, percent_cal: float, alpha: float, n_tri
 
 if __name__ == '__main__':
     main('/scratch/ssd004/scratch/kkasa/inference_results/', save_path='results/', percent_cal=0.5,
-         alpha=0.1, ood_datasets=['imagenet_r', 'imagenet_a', 'imagenet_v2'], n_trials=10)
+         alpha=0.1, ood_datasets=['imagenet_r', 'imagenet_a', 'imagenet_v2'], INC_datasets=['contrast'], n_trials=10)
