@@ -114,7 +114,7 @@ def main(root_path: str, save_path: str, percent_cal: float, alpha: float, n_tri
 
                         # get confidence sets
                         conf_set_thr = cp.predict_threshold(val_smx, tau_thr)
-                        conf_set_raps = cp.predict_raps(val_smx, tau_raps, rng=True, k_reg=2, lambda_reg=0.1)
+                        conf_set_raps = cp.predict_raps(val_smx, tau_raps, rng=True, k_reg=k_reg, lambda_reg=lambda_reg)
                         conf_set_aps = cp.predict_raps(val_smx, tau_aps, rng=True)
 
                         # evaluate coverage
