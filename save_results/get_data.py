@@ -1,4 +1,6 @@
-# used to save inference results on specific datasets
+"""
+Loads specified dataset to be used for saving inference results
+"""
 import torchvision
 import torch
 
@@ -7,6 +9,13 @@ from imagenet_w import AddWatermark
 import utils
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+# Paths where the datasets can be found.
+data_dirs = {'IN1k': r'/datasets/imagenet/val/',
+             'INv2': r'/datasets/imagenetv2/imagenetv2-matched-frequency-format-val/',
+             'INa': r'/datasets/imagenet-a/',
+             'INr': r'/datasets/imagenet-r/',
+             'INc': r'datasets/imagenet-c/'}
 
 
 def IN1k(exp_name: str, transform: torchvision.transforms, model):
@@ -21,10 +30,10 @@ def IN1k(exp_name: str, transform: torchvision.transforms, model):
 
     print('Working on ImageNet1k')
     # dataloaders for imagenet-1k
-    imagenet_data = torchvision.datasets.ImageFolder(root=r'/h/kkasa/datasets/imagenet/val/', transform=transform)
+    imagenet_data = torchvision.datasets.ImageFolder(root=data_dirs['IN1k'], transform=transform)
     imagenet_loader = torch.utils.data.DataLoader(imagenet_data, batch_size=128, shuffle=False)
     # save results on IN1K
-    savepath = '/scratch/ssd004/scratch/kkasa/inference_results/IN1k/'  # TODO: make this an input parameter
+    savepath = 'inference_results/IN1k/'
 
     exp_name = 'imagenet-' + exp_name
     utils.save_results(save_path=savepath, model=model, data_loader=imagenet_loader, device=device, exp_name=exp_name)
@@ -42,10 +51,10 @@ def INv2(exp_name: str, transform, model):
 
     print('Working on ImageNetV2')
     # now save on ImageNetV2
-    imagenetv2_data = utils.ImageNetV2(root=r'/h/kkasa/datasets/imagenetv2/imagenetv2-matched-frequency-format-val/',
+    imagenetv2_data = utils.ImageNetV2(root=data_dirs['INv2'],
                                        transform=transform)
     imagenetv2_loader = torch.utils.data.DataLoader(imagenetv2_data, batch_size=128, shuffle=False)
-    savepath = '/scratch/ssd004/scratch/kkasa/inference_results/imagenet_v2/'
+    savepath = 'inference_results/imagenet_v2/'
 
     exp_name = 'imagenetv2-' + exp_name
     utils.save_results(save_path=savepath, model=model, data_loader=imagenetv2_loader, device=device, exp_name=exp_name)
@@ -63,7 +72,7 @@ def INa(exp_name: str, transform, model):
 
     print('Working on ImageNet-A')
     # now ImageNet-A
-    imagenet_a_data = torchvision.datasets.ImageFolder(root=r'/h/kkasa/datasets/imagenet-a/', transform=transform)
+    imagenet_a_data = torchvision.datasets.ImageFolder(root=data_dirs['INa'], transform=transform)
     imagenet_a_loader = torch.utils.data.DataLoader(imagenet_a_data, batch_size=128, shuffle=False)
     # imagenet-a uses subset of 200 classes
     thousand_k_to_200 = {0: -1, 1: -1, 2: -1, 3: -1, 4: -1, 5: -1, 6: 0, 7: -1, 8: -1, 9: -1, 10: -1, 11: 1, 12: -1,
@@ -166,7 +175,7 @@ def INa(exp_name: str, transform, model):
                          988: 199, 989: -1, 990: -1, 991: -1, 992: -1, 993: -1, 994: -1, 995: -1, 996: -1, 997: -1,
                          998: -1, 999: -1}
     indices_in_1k = [k for k in thousand_k_to_200 if thousand_k_to_200[k] != -1]
-    savepath = '/scratch/ssd004/scratch/kkasa/inference_results/imagenet_a/'
+    savepath = 'inference_results/imagenet_a/'
 
     exp_name = 'imageneta-' + exp_name
     utils.save_results_IN200(save_path=savepath, model=model, data_loader=imagenet_a_loader, device=device,
@@ -342,9 +351,9 @@ def INr(exp_name: str, transform, model):
                         'n09472597', 'n09835506', 'n10565667', 'n12267677'}
     imagenet_r_mask = [wnid in imagenet_r_wnids for wnid in all_wnids]
 
-    imagenet_r_data = torchvision.datasets.ImageFolder(root=r'/h/kkasa/datasets/imagenet-r/', transform=transform)
+    imagenet_r_data = torchvision.datasets.ImageFolder(root=data_dirs['INr'], transform=transform)
     imagenet_r_loader = torch.utils.data.DataLoader(imagenet_r_data, batch_size=128, shuffle=False)
-    savepath = '/scratch/ssd004/scratch/kkasa/inference_results/imagenet_r/'
+    savepath = 'inference_results/imagenet_r/'
 
     exp_name = 'imagenetr-' + exp_name
     utils.save_results_IN200(save_path=savepath, model=model, data_loader=imagenet_r_loader, device=device,
@@ -372,11 +381,11 @@ def INc(exp_name: str, transform, model,
         for i in range(1, 6):
             # dataloaders for imagenet-1kc
             imagenet_contrast_data = torchvision.datasets.ImageFolder(
-                root=r'/h/kkasa/datasets/imagenet-c/' + corr + '/' + str(i) + '/', transform=transform)
+                root=data_dirs['INc'] + corr + '/' + str(i) + '/', transform=transform)
             imagenet_contrast_loader = torch.utils.data.DataLoader(imagenet_contrast_data, batch_size=128,
                                                                    shuffle=False)
 
-            savepath = '/scratch/ssd004/scratch/kkasa/inference_results/imagenet-c/' + corr + '/' + str(i) + '/'
+            savepath = 'inference_results/imagenet-c/' + corr + '/' + str(i) + '/'
 
             exp_name = 'imagenetc-' + exp_name
             utils.save_results(save_path=savepath, model=model, data_loader=imagenet_contrast_loader, device=device,
@@ -401,10 +410,10 @@ def INw(exp_name: str, transform, model):
     transform_list.insert(-1, AddWatermark(224))
 
     # dataloaders for imagenet-1k
-    imagenet_data = torchvision.datasets.ImageFolder(root=r'/h/kkasa/datasets/imagenet/val/', transform=transform)
+    imagenet_data = torchvision.datasets.ImageFolder(root=data_dirs['IN1k'], transform=transform)
     imagenet_loader = torch.utils.data.DataLoader(imagenet_data, batch_size=128, shuffle=False)
     # save results on IN1K
-    savepath = '/scratch/ssd004/scratch/kkasa/inference_results/imagenet_w/'
+    savepath = 'inference_results/imagenet_w/'
 
     exp_name = 'imagenetw-' + exp_name
     utils.save_results(save_path=savepath, model=model, data_loader=imagenet_loader, device=device, exp_name=exp_name)

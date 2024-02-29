@@ -13,16 +13,17 @@ import get_data
 def get_args_parser():
     parser = argparse.ArgumentParser('Script for saving inference results from PyTorch models', add_help=False)
 
-    parser.add_argument('--exp_name', type=str, help='Experiment name')
+    parser.add_argument('--exp_name', type=str,
+                        help='Experiment name. Can be used to specify which model is used for inference, or other parameters.')
     parser.add_argument('--model', type=str, choices=['deit3B', 'deit3S', 'vitB', 'vitS', 'resnet152', 'resnet50'],
                         help='Model name')
-    parser.add_argument('--datasets', type=str, nargs='+', help='List of datasets (IN1k, INv2, etc)')
+    parser.add_argument('--datasets', type=str, nargs='+', help='List of datasets ["IN1k", "INv2", etc]')
     return parser
 
 
 def main(args):
     supported_datasets = [
-        'INk1',
+        'IN1k',
         'INv2',
         'INa',
         'INc',
@@ -56,7 +57,7 @@ def main(args):
     elif args.model == 'resnet50':
         model = torchvision.models.resnet50(pretrained=True, progress=True)
         print('Loaded ResNet-50')
-    else:  # TODO: support torchvision resnet-50/152
+    else:
         raise ValueError('Invalid model selected')
 
     model = model.eval()

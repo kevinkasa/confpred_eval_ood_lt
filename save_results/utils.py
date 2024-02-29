@@ -1,3 +1,6 @@
+"""
+Saves softmax results to .npz file.
+"""
 import os
 from pathlib import Path
 
@@ -23,7 +26,6 @@ def save_results(save_path, model, data_loader, device, exp_name):
 
     print("saving the scores and labels")
     os.makedirs(save_path, exist_ok=True)
-    # TODO: add checking if file already exists
     np.savez(save_path + exp_name + '.npz', smx=scores, labels=labels)
 
     acc = (np.argmax(scores, axis=1) == labels).mean() * 100

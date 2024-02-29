@@ -1,4 +1,4 @@
-"""Main script for running conformal prediction and saving outputs"""
+"""Main script for running conformal prediction and saving results"""
 from pathlib import Path
 from collections import defaultdict
 
@@ -8,20 +8,21 @@ from tqdm import tqdm
 
 import conformal_prediction as cp
 import evaluation
-import utils
 
 
 def main(root_path: str, save_path: str, percent_cal: float, alpha: float, n_trials: int = 10,
          ood_datasets: list = None, INC_datasets: list = None, ):
     """
-    Performs conformal prediction and evaluation on ImageNet and given OOD datasets, and saves results to .csv's
+    Performs conformal prediction and evaluation on ImageNet and given OOD datasets.
+    Metrics are averaged across n_trials random splits, and the resulting mean & std are saved to .csv's
     :param root_path: Root path where softmax scores are stored
     :param save_path: Where to save results
     :param percent_cal: Percent of ImageNet validation data to use for calibration
     :param alpha: Desired error level
     :param n_trials: Number of trials to run
     :param ood_datasets: list of ood imagenet datasets to evaluate on
-    :return:
+    :param INC_datasets: List of  imagenet-c corruption types to evaluate.
+            Chose from ['contrast', 'brightness', 'motion_blur', 'gaussian_noise']
     """
     root_path = Path(root_path)
     save_path = Path(save_path)
@@ -103,7 +104,7 @@ def main(root_path: str, save_path: str, percent_cal: float, alpha: float, n_tri
                 for data_path in data_paths:
                     eval = True
                     if dataset == 'imagenet_c' and data_path.parts[-3] not in INC_datasets:
-                        eval = False  # used to skip IN-C datasets
+                        eval = False  # used to skip IN-C corruption types that are not wanted
                     if eval:
                         data = np.load(data_path)
                         val_smx = data['smx']
@@ -162,5 +163,5 @@ def main(root_path: str, save_path: str, percent_cal: float, alpha: float, n_tri
 
 
 if __name__ == '__main__':
-    main('/scratch/ssd004/scratch/kkasa/inference_results/', save_path='results/', percent_cal=0.5,
+    main('/inference_results/', save_path='results/', percent_cal=0.5,
          alpha=0.1, ood_datasets=['imagenet_r', 'imagenet_a', 'imagenet_v2'], INC_datasets=['contrast'], n_trials=10)

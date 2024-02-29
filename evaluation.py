@@ -1,8 +1,9 @@
+"""
+Code originally from: https://github.com/google-deepmind/conformal_training/blob/main/evaluation.py
+"""
 from typing import Tuple
 
 import numpy as np
-
-import conformal_prediction as cp
 
 
 def compute_conditional_accuracy(
@@ -21,7 +22,6 @@ def compute_conditional_accuracy(
         :param conditional_label: selected conditional label to compute accuracy on
         :return Accuracy
     """
-    # TODO: look more carefully into what this is calculating; is this macro acc?
     selected = (conditional_labels == conditional_label)
     num_examples = np.sum(selected)
     predictions = np.argmax(probabilities, axis=1)
@@ -52,7 +52,6 @@ def compute_conditional_multi_coverage(
     :param conditional_label: selected conditional to compute coverage for
     :return:
     """
-    # TODO: debug and step through this
     selected = (conditional_labels == conditional_label)  # select subset of labels
     num_examples = np.sum(selected)
     coverage = selected * np.clip(
@@ -109,7 +108,7 @@ def compute_conditional_size(
     selected = (conditional_labels == conditional_label)
     num_examples = np.sum(selected)
     size = selected * np.sum(confidence_sets, axis=1)
-    size = np.where(num_examples == 0, 0, np.sum(size) / num_examples)  # TODO: step through this
+    size = np.where(num_examples == 0, 0, np.sum(size) / num_examples)
     return size, num_examples
 
 

@@ -1,4 +1,7 @@
-"""Implementation of various conformal prediction methods.
+"""
+Code originally from: https://github.com/google-deepmind/conformal_training/blob/main/conformal_prediction.py
+
+Implementation of various conformal prediction methods.
 
 Implements conformal prediction from [1,2,3]:
 
@@ -143,7 +146,7 @@ def calibrate_raps(
         # as the true class is included by design and only
         # additional classes should be regularized
         conformity_reg = reverse_sorting[np.arange(reverse_sorting.shape[0]),
-                                         labels]
+        labels]
         conformity_reg = conformity_reg - k_reg + 1
         conformity_reg = lambda_reg * np.maximum(conformity_reg, 0)
         conformity_scores += conformity_reg
@@ -160,14 +163,13 @@ def predict_raps(
         rng: Optional[bool] = None) -> np.ndarray:
     """
     Get confidence sets using tau computed via aps_calibrate.
-    :param probabilities:
-    :param tau:
-    :param k_reg:
-    :param lambda_reg:
-    :param rng:
-    :return:
+    :param probabilities: predicted probabilities on test set
+    :param tau: threshold for probabilities or logits
+    :param k_reg: target confidence set size for regularization
+    :param lambda_reg: regularization weight
+    :param rng: random key for uniform variables
+    :return: Confidence sets as 0-1array of same size as probabilities
     """
-
     reg = k_reg is not None and lambda_reg is not None
 
     sorting = np.argsort(-probabilities, axis=1)  # used sort from highest to lowest prob
